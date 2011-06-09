@@ -14,6 +14,25 @@
 
 import qualified Data.Char as C
 import Control.Applicative ((<$>))
+import Data.IntMap (IntMap)
+import qualified Data.IntMap as IM
+import qualified Data.List as L
+import Data.Maybe as Maybe
+import qualified Data.Text.IO as TIO
+import Data.Text (Text)
+import qualified Data.Text as T
+import Data.Enumerator (Iteratee, (>>==), (=$))
+import qualified Data.Enumerator as E
+import qualified Data.Enumerator.List as EL
+import qualified Data.Enumerator.Text as TE
+import System.IO (BufferMode(..))
+import qualified System.IO as IO
+
+import Data.Foldable (Foldable)
+import qualified Data.Foldable as F
+import Data.Judy (JE, JudyL, Key)
+import qualified Data.Judy as J
+import qualified Control.Monad as M
 
 charToNumeric :: Monad m => Char -> m Int
 charToNumeric c =
@@ -78,7 +97,7 @@ charToNumeric c =
       go 23 = return 9
       go 24 = return 9
       go 25 = return 9
-      go _  = fail "Non-letter character passed to charToNumeric"
+      go _  = fail ("Non-letter character passed to charToNumeric: " ++ [c])
   in go n
 
 exponentiateDecimal :: [Int] -> Int
@@ -90,9 +109,33 @@ exponentiateDecimal ns =
 toNumeric :: (Functor m, Monad m) => String -> m Int
 toNumeric s = exponentiateDecimal <$> (mapM charToNumeric) s
 
-possibleMatches :: String -> [String]
-possibleMatches = undefined
-  -- sortBy (comparing length) $ filter (\toNumeric s -> isPrefixOf $_) map
+possibleMatches :: IntMap a -> String -> [a]
+possibleMatches table key =
+  (map snd . IM.toAscList) (IM.filterWithKey (\k _ -> key `L.isPrefixOf` (show k)) table)
+
+safeChar :: Char -> Bool
+safeChar = (Maybe.isJust . charToNumeric)
+
+safeString :: Text -> Bool
+safeString = T.all safeChar
+
+makeTable :: (Functor m, Monad m) => [Text] -> m (IntMap [Text])
+makeTable ss = do
+  hashes <- mapM (toNumeric . T.unpack) safeStrings
+  return (IM.fromListWith (++) (zip hashes (map (: []) safeStrings)))
+  where safeStrings = filter safeString ss
+
+betterWords :: Text -> [Text]
+betterWords = T.split (\c -> c `elem` " \".,?!:\n")
+
+interactIteratee :: (Text -> Text) -> Iteratee Text IO ()
+interactIteratee f =
+  EL.foldM (\_ line -> (TIO.putStrLn . f) line) ()
+
+showText :: Show a => a -> Text
+showText = T.pack . show
 
 main :: IO ()
-main = undefined
+main = do
+  table <- makeTable =<< (betterWords <$> (TIO.readFile "alice_in_wonderland.txt"))
+  E.run_ (TE.lines =$ interactIteratee (\input -> showText (possibleMatches table (T.unpack input))) >>== TE.enumHandle IO.stdin)
