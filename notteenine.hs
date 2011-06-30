@@ -27,14 +27,7 @@ import Data.Enumerator (Iteratee, (>>==), (=$))
 import qualified Data.Enumerator as E
 import qualified Data.Enumerator.List as EL
 import qualified Data.Enumerator.Text as TE
-import System.IO (BufferMode(..))
 import qualified System.IO as IO
-
-import Data.Foldable (Foldable)
-import qualified Data.Foldable as F
-import Data.Judy (JE, JudyL, Key)
-import qualified Data.Judy as J
-import qualified Control.Monad as M
 
 charToNumeric :: Monad m => Char -> m Int
 charToNumeric c =
