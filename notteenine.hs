@@ -16,6 +16,8 @@ import qualified Data.Char as C
 import Control.Applicative ((<$>))
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IM
+import Data.Set (Set)
+import qualified Data.Set as S
 import qualified Data.List as L
 import Data.Maybe as Maybe
 import qualified Data.Text.IO as TIO
@@ -119,10 +121,10 @@ safeChar = (Maybe.isJust . charToNumeric)
 safeString :: Text -> Bool
 safeString = T.all safeChar
 
-makeTable :: (Functor m, Monad m) => [Text] -> m (IntMap [Text])
+makeTable :: (Functor m, Monad m) => [Text] -> m (IntMap (Set Text))
 makeTable ss = do
   hashes <- mapM (toNumeric . T.unpack) safeStrings
-  return (IM.fromListWith (++) (zip hashes (map (: []) safeStrings)))
+  return (IM.fromListWith (\x y -> S.union x y) (zip hashes (map S.singleton safeStrings)))
   where safeStrings = filter safeString ss
 
 betterWords :: Text -> [Text]
