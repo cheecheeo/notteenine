@@ -102,14 +102,14 @@ exponentiateDecimal ns =
 
 -- | Convert a word to it's numeric equivalent. For example 'toNumeric' "cat" = 228
 toNumeric :: (Functor m, Monad m) => String -> m Int
-toNumeric s = exponentiateDecimal <$> (mapM charToNumeric) s
+toNumeric s = exponentiateDecimal <$> mapM charToNumeric s
 
 possibleMatches :: IntMap a -> String -> [a]
 possibleMatches table key =
-  (map snd . IM.toAscList) (IM.filterWithKey (\k _ -> key `L.isPrefixOf` (show k)) table)
+  (map snd . IM.toAscList) (IM.filterWithKey (\k _ -> key `L.isPrefixOf` show k) table)
 
 safeChar :: Char -> Bool
-safeChar = (Maybe.isJust . charToNumeric)
+safeChar = Maybe.isJust . charToNumeric
 
 safeString :: Text -> Bool
 safeString = T.all safeChar
@@ -117,11 +117,11 @@ safeString = T.all safeChar
 makeTable :: (Functor m, Monad m) => [Text] -> m (IntMap (Set Text))
 makeTable ss = do
   hashes <- mapM (toNumeric . T.unpack) safeStrings
-  return (IM.fromListWith (\x y -> S.union x y) (zip hashes (map S.singleton safeStrings)))
+  return (IM.fromListWith S.union (zip hashes (map S.singleton safeStrings)))
   where safeStrings = filter safeString ss
 
 betterWords :: Text -> [Text]
-betterWords = T.split (\c -> c `elem` " \".,?!:\n")
+betterWords = T.split (`elem` " \".,?!:\n")
 
 interactIteratee :: (Text -> Text) -> Iteratee Text IO ()
 interactIteratee f =
@@ -132,5 +132,5 @@ showText = T.pack . show
 
 main :: IO ()
 main = do
-  table <- makeTable =<< (betterWords <$> (TIO.readFile "alice_in_wonderland.txt"))
-  E.run_ (TE.lines =$ interactIteratee (\input -> showText (possibleMatches table (T.unpack input))) >>== TE.enumHandle IO.stdin)
+  table <- makeTable =<< (betterWords <$> TIO.readFile "alice_in_wonderland.txt")
+  E.run_ (TE.lines =$ interactIteratee (showText . possibleMatches table . T.unpack) >>== TE.enumHandle IO.stdin)
