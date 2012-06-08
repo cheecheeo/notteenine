@@ -12,22 +12,22 @@
  - http://sam.zoy.org/wtfpl/COPYING for more details.
 -}
 
-import qualified Data.Char as C
-import Control.Applicative ((<$>))
-import Data.IntMap (IntMap)
-import qualified Data.IntMap as IM
-import Data.Set (Set)
-import qualified Data.Set as S
-import qualified Data.List as L
-import Data.Maybe as Maybe
-import qualified Data.Text.IO as TIO
-import Data.Text (Text)
-import qualified Data.Text as T
-import Data.Enumerator (Iteratee, (>>==), (=$))
-import qualified Data.Enumerator as E
+import           Control.Applicative  ((<$>))
+import qualified Data.Char            as C
+import           Data.Enumerator      (Iteratee, (=$), (>>==))
+import qualified Data.Enumerator      as E
 import qualified Data.Enumerator.List as EL
 import qualified Data.Enumerator.Text as TE
-import qualified System.IO as IO
+import           Data.IntMap          (IntMap)
+import qualified Data.IntMap          as IM
+import qualified Data.List            as L
+import           Data.Maybe           as Maybe
+import           Data.Set             (Set)
+import qualified Data.Set             as S
+import           Data.Text            (Text)
+import qualified Data.Text            as T
+import qualified Data.Text.IO         as TIO
+import qualified System.IO            as IO
 
 -- | Convert a character to its touch tone keypad equivalent
 --
