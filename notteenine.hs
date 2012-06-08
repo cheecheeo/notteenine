@@ -29,6 +29,18 @@ import qualified Data.Enumerator.List as EL
 import qualified Data.Enumerator.Text as TE
 import qualified System.IO as IO
 
+-- | Convert a character to its touch tone keypad equivalent
+--
+-- >>> charToNumeric '!' :: Maybe Int
+-- Nothing
+-- >>> charToNumeric 'a' :: Maybe Int
+-- Just 2
+-- >>> charToNumeric 'b' :: Maybe Int
+-- Just 2
+-- >>> charToNumeric 'c' :: Maybe Int
+-- Just 2
+-- >>> charToNumeric 'x' :: Either String Int
+-- Right 9
 charToNumeric :: Monad m => Char -> m Int
 charToNumeric c =
   let n = C.ord c - 65
